@@ -14,24 +14,27 @@
 #include <strings.h>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include "IConnection.h"
+#include "IEpollWrapper.h"
 
 class ConnectionManager {
     struct epoll_event events[16];
     int epollFd;
     static int id_seed;
 
-    std::vector<IConnection*> connections;
+    std::vector<IEpollWrapper*> connections;
 
     static int getNextId();
 
 public:
     ConnectionManager();
 
-    void handleServer(IConnection* connection);
-    void handleClient(IConnection* connection);
+    void handleServer(IEpollWrapper* connection);
+    void handleClient(IEpollWrapper* connection);
+    void handleSignal(IEpollWrapper* connection);
 
     [[noreturn]] void acceptConnections();
+
+    ~ConnectionManager();
 };
 
 

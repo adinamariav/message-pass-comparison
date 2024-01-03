@@ -4,23 +4,34 @@
 
 #include "ConnectionManager.h"
 #include "ServerConnection.h"
+#include "Signal.h"
 
 int ConnectionManager::id_seed = 0;
 
 ConnectionManager::ConnectionManager() {
     this->epollFd = epoll_create1(0);
 
-    IConnection* serverConnection = new ServerConnection();
+    IEpollWrapper* serverConnection = new ServerConnection();
     struct epoll_event serverEvent;
 
     serverEvent.events = EPOLLIN;
     serverEvent.data.ptr = serverConnection;
 
-    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, serverConnection->getSocket(), &serverEvent) == -1) {
+    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, serverConnection->getDescriptor(), &serverEvent) == -1) {
         perror("Failed to add file descriptor to epoll");
         exit(EXIT_FAILURE);
     }
 
+    IEpollWrapper* signalHandler = new Signal();
+    struct epoll_event signalEvent;
+
+    signalEvent.events = EPOLLIN;
+    signalEvent.data.ptr = signalHandler;
+
+    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, signalHandler->getDescriptor(), &signalEvent) == -1) {
+        perror("Failed to add signalfd signal handler");
+        exit(EXIT_FAILURE);
+    }
 }
 
 
@@ -28,30 +39,31 @@ ConnectionManager::ConnectionManager() {
     while(true) {
         int numEvents = epoll_wait(epollFd, events, 16, -1);
         for (int i = 0; i < numEvents; i++) {
-            auto* wrapper = static_cast<IConnection*>(events[i].data.ptr);
+            auto* wrapper = static_cast<IEpollWrapper*>(events[i].data.ptr);
 
             if (wrapper->getId() == 0)
                 handleServer(wrapper);
-            else if (events[i].events & EPOLLIN) {
+            else if (wrapper->getId() == -1)
+                handleSignal(wrapper);
+            else if (events[i].events & EPOLLIN)
                 handleClient(wrapper);
-            }
         }
     }
 }
 
-void ConnectionManager::handleServer(IConnection *connection) {
+void ConnectionManager::handleServer(IEpollWrapper *connection) {
     struct sockaddr_in clientAddr;
     socklen_t socklen = sizeof(clientAddr);
     char buf[1024];
 
-    int newSock = accept(connection->getSocket(), (struct sockaddr*)&clientAddr, &socklen);
+    int newSock = accept(connection->getDescriptor(), (struct sockaddr*)&clientAddr, &socklen);
 
     inet_ntop(AF_INET, (char *)&(clientAddr.sin_addr),
               buf, sizeof(clientAddr));
     printf("[+] connected with %s:%d\n", buf,
            ntohs(clientAddr.sin_port));
 
-    IConnection *clientConnection = new Connection(newSock, getNextId());
+    IEpollWrapper *clientConnection = new Connection(newSock, getNextId());
     this->connections.push_back(clientConnection);
 
     std::string clientBuf = "Hello! Your id is " + std::to_string(clientConnection->getId()) + "\n";
@@ -63,7 +75,7 @@ void ConnectionManager::handleServer(IConnection *connection) {
     clientEvent.events = EPOLLIN;
     clientEvent.data.ptr = clientConnection;
 
-    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientConnection->getSocket(), &clientEvent) == -1) {
+    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientConnection->getDescriptor(), &clientEvent) == -1) {
         perror("Failed to add file descriptor to epoll");
         exit(EXIT_FAILURE);
     }
@@ -73,7 +85,7 @@ int ConnectionManager::getNextId() {
     return ++id_seed;
 }
 
-void ConnectionManager::handleClient(IConnection *connection) {
+void ConnectionManager::handleClient(IEpollWrapper *connection) {
     std::string received = connection->receiveMessage();
 
     typedef std::vector<std::string> Tokens;
@@ -102,4 +114,20 @@ void ConnectionManager::handleClient(IConnection *connection) {
     } else {
         connection->sendMessage(received);
     }
+}
+
+ConnectionManager::~ConnectionManager() {
+    for (auto client : this->connections)
+        delete client;
+
+    this->connections.clear();
+}
+
+void ConnectionManager::handleSignal(IEpollWrapper *connection) {
+    printf("Received signal!!!!!!");
+    for (auto client : this->connections)
+        delete client;
+
+    this->connections.clear();
+    exit(EXIT_SUCCESS);
 }

@@ -7,7 +7,9 @@ add_executable(server main.cpp
         ConnectionManager.h
         Connection.cpp
         Connection.h
-        IConnection.h
+        IEpollWrapper.h
         ServerConnection.cpp
         ServerConnection.h
+        Signal.cpp
+        Signal.h
 )

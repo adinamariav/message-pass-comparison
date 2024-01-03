@@ -6,12 +6,12 @@
 #define MESSAGE_PASS_COMPARISON_CONNECTION_H
 
 
-#include "IConnection.h"
+#include "IEpollWrapper.h"
 #include <sys/socket.h>
 
-class Connection : public IConnection {
+class Connection : public IEpollWrapper {
 protected:
-    int connSocket;
+    int descriptor;
     int id;
 
 public:
@@ -19,13 +19,9 @@ public:
 
     Connection();
 
-    [[nodiscard]] int getSocket() const override;
+    [[nodiscard]] int getDescriptor() const override;
 
     [[nodiscard]] int getId() const override;
-
-    void initialize() override;
-
-    void handle() override;
 
     void sendMessage(std::string message) override;
     std::string receiveMessage() override;

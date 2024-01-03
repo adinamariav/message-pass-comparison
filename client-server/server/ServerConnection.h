@@ -19,10 +19,6 @@ class ServerConnection : public Connection {
 public:
     ServerConnection();
 
-    void initialize() override;
-
-    void handle() override;
-
     ~ServerConnection() override = default;
 };
 

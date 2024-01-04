@@ -60,13 +60,14 @@ void ConnectionManager::handleServer(IEpollWrapper *connection) {
 
     inet_ntop(AF_INET, (char *)&(clientAddr.sin_addr),
               buf, sizeof(clientAddr));
-    printf("[+] connected with %s:%d\n", buf,
-           ntohs(clientAddr.sin_port));
 
     IEpollWrapper *clientConnection = new Connection(newSock, getNextId());
     this->connections.push_back(clientConnection);
 
-    std::string clientBuf = "Hello! Your id is " + std::to_string(clientConnection->getId()) + "\n";
+    printf("[+] id %d connected with %s:%d\n", clientConnection->getId(), buf,
+           ntohs(clientAddr.sin_port));
+
+    std::string clientBuf = std::to_string(clientConnection->getId()) + "\n";
 
     clientConnection->sendMessage(clientBuf);
 
@@ -102,7 +103,7 @@ void ConnectionManager::handleClient(IEpollWrapper *connection) {
         for (; iter != tokens.end(); iter++)
             content += *iter + " ";
 
-        std::string mes = "[*] id " + std::to_string(connection->getId()) + " wants to send " + std::to_string(sendId) + " " + content;
+        std::string mes = "[*] id " + std::to_string(connection->getId()) + " wants to send " + std::to_string(sendId) + " " + content + "\n";
         printf("%s", mes.c_str());
 
         for (auto c : this->connections) {

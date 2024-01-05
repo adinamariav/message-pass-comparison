@@ -10,7 +10,7 @@
 class Client {
     Connection conn;
 public:
-    const Connection &getConn() const;
+    [[nodiscard]] const Connection &getConn() const;
 
 private:
     int id = -1;
@@ -21,7 +21,7 @@ public:
     [[nodiscard]] int getId() const;
 
     void sendToClient(int id, const std::string& content);
-    std::string receive();
+    std::vector<std::string> receive();
 };
 
 

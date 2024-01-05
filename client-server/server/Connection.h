@@ -8,6 +8,8 @@
 
 #include "IEpollWrapper.h"
 #include <sys/socket.h>
+#include <cstdint>
+#include <vector>
 
 class Connection : public IEpollWrapper {
 protected:
@@ -24,7 +26,10 @@ public:
     [[nodiscard]] int getId() const override;
 
     void sendMessage(std::string message) override;
+
     std::string receiveMessage() override;
+
+    std::vector<std::string> receiveMessages() override;
 
     ~Connection() override = default;
 };

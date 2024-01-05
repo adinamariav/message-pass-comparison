@@ -8,9 +8,12 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <cstdlib>
 #include <string>
 #include <cstring>
+#include <cstdint>
+#include <vector>
 
 class Connection {
     int clientSocket;
@@ -25,7 +28,8 @@ public:
     Connection();
 
     void sendMessage(const std::string& message) const;
-    [[nodiscard]] std::string receiveMessage();
+    [[nodiscard]] std::string receiveMessage() const;
+    [[nodiscard]] std::vector<std::string> receiveMessages() const;
 
     ~Connection() = default;
 };

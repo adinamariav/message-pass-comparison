@@ -48,21 +48,36 @@ int main(int argc, char* argv[])
             if (events[i].data.fd == 0) {
                 getline(std::cin, received);
 
+                if (received.empty())
+                    continue;
+
                 boost::split(tokens, received, boost::is_any_of(" "));
-                sendID = stoi(tokens[0]);
+                try {
+                    sendID = stoi(tokens[0]);
+                } catch (const std::invalid_argument& e) {
+                    std::cerr << "Invalid argument: " << tokens[0] << std::endl;
+                    continue;
+                }
+
                 auto iter = tokens.begin();
                 std::advance(iter, 1);
                 for (; iter != tokens.end(); iter++)
                     content += *iter + " ";
                 client.sendToClient(sendID, content);
             } else {
-                received = client.receive();
+                auto receivedMessages =  client.receive();
 
-                if (received.empty())
+                if (receivedMessages.empty())
                     break;
 
-                std::cout << "Received " + received << "\n";
+                for (const auto& mes : receivedMessages) {
+                    std::cout << "Received " + mes << "\n";
+                }
             }
+
+            received = "";
+            tokens.clear();
+            content = "";
         }
     }
 }

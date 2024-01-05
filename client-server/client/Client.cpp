@@ -5,7 +5,7 @@
 #include "Client.h"
 
 Client::Client() {
-    this->id = stoi(conn.receiveMessage());
+    this->id = stoi(conn.receiveMessages().front());
 }
 
 int Client::getId() const {
@@ -18,8 +18,8 @@ void Client::sendToClient(int idToSend, const std::string& content) {
     conn.sendMessage(message);
 }
 
-std::string Client::receive() {
-    return conn.receiveMessage();
+std::vector<std::string> Client::receive() {
+    return conn.receiveMessages();
 }
 
 const Connection &Client::getConn() const {

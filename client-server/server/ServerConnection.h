@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <cstdlib>
+#include <fcntl.h>
 #include <cstdio>
 #include "Connection.h"
 

@@ -12,6 +12,17 @@ ServerConnection::ServerConnection() {
         exit(EXIT_FAILURE);
     }
 
+    int flags = fcntl(this->descriptor, F_GETFL, 0);
+    if (flags == -1) {
+        perror("fcntl");
+        exit(EXIT_FAILURE);
+    }
+    if (fcntl(this->descriptor, F_SETFL, flags | O_NONBLOCK) == -1) {
+        perror("fcntl");
+        exit(EXIT_FAILURE);
+    }
+
+
     int reuse = 1;
     if (setsockopt(descriptor, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof(reuse)) < 0) {
         perror("Setsockopt failed");

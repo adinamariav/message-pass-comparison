@@ -58,6 +58,16 @@ void ConnectionManager::handleServer(IEpollWrapper *connection) {
 
     int newSock = accept(connection->getDescriptor(), (struct sockaddr*)&clientAddr, &socklen);
 
+    int flags = fcntl(newSock, F_GETFL, 0);
+    if (flags == -1) {
+        perror("fcntl");
+        exit(EXIT_FAILURE);
+    }
+    if (fcntl(newSock, F_SETFL, flags | O_NONBLOCK) == -1) {
+        perror("fcntl");
+        exit(EXIT_FAILURE);
+    }
+
     inet_ntop(AF_INET, (char *)&(clientAddr.sin_addr),
               buf, sizeof(clientAddr));
 
@@ -87,34 +97,40 @@ int ConnectionManager::getNextId() {
 }
 
 void ConnectionManager::handleClient(IEpollWrapper *connection) {
-    std::string received = connection->receiveMessage();
+    std::vector<std::string> receivedMessages = connection->receiveMessages();
 
-    typedef std::vector<std::string> Tokens;
-    Tokens tokens;
-    std::string content;
+    for (auto received : receivedMessages) {
+        typedef std::vector<std::string> Tokens;
+        Tokens tokens;
+        std::string content;
 
-    boost::split(tokens, received, boost::is_any_of(" "));
+        boost::split(tokens, received, boost::is_any_of(" "));
 
-    if (tokens[0] == "SEND") {
-        int sendId = stoi(tokens[1]);
-        auto iter = tokens.begin();
-        std::advance(iter, 2);
+        if (tokens[0] == "SEND") {
+            int sendId = stoi(tokens[1]);
+            auto iter = tokens.begin();
+            std::advance(iter, 2);
 
-        for (; iter != tokens.end(); iter++)
-            content += *iter + " ";
+            for (; iter != tokens.end(); iter++)
+                content += *iter + " ";
 
-        std::string mes = "[*] id " + std::to_string(connection->getId()) + " wants to send " + std::to_string(sendId) + " " + content + "\n";
-        printf("%s", mes.c_str());
+            std::string mes = "[*] id " + std::to_string(connection->getId()) + " wants to send " + std::to_string(sendId) + " " + content + "\n";
+            //printf("%s", mes.c_str());
 
-        for (auto c : this->connections) {
-            if (c->getId() == sendId) {
-                std::string toSend = "[" + std::to_string(connection->getId()) + "]: " + content;
-                c->sendMessage(toSend);
+            for (auto c : this->connections) {
+                if (c->getId() == sendId) {
+                    std::string toSend = "[" + std::to_string(connection->getId()) + "]: " + content;
+                    c->sendMessage(toSend);
+                }
             }
+        } else {
+            connection->sendMessage(received);
         }
-    } else {
-        connection->sendMessage(received);
+
+        content = "";
+        tokens.clear();
     }
+
 }
 
 ConnectionManager::~ConnectionManager() {

@@ -6,6 +6,7 @@
 #define MESSAGE_PASS_COMPARISON_IEPOLLWRAPPER_H
 
 #include <string>
+#include <vector>
 
 class IEpollWrapper {
 public:
@@ -16,6 +17,8 @@ public:
     virtual void sendMessage(std::string message) = 0;
 
     virtual std::string receiveMessage() = 0;
+
+    virtual std::vector<std::string> receiveMessages() = 0;
 
     virtual ~IEpollWrapper() = default;
 };

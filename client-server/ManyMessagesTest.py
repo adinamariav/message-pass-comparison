@@ -5,6 +5,17 @@ import os
 import fcntl
 
 
+def server_process(output_queue):
+    process = subprocess.Popen(["server/server"], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                               text=True, bufsize=1)
+
+    while True:
+        line = process.stdout.readline()
+        if line != '':
+            output_queue.put(line)
+            print(line)
+
+
 def client2_process(client_id, messages, input_queue, output_queue):
     process = subprocess.Popen(["client/client", str(client_id)], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                text=True, bufsize=1)
@@ -51,13 +62,18 @@ def main():
     client2_input = multiprocessing.Queue()
     client2_output = multiprocessing.Queue()
 
-    messages = 900000
+    server_output = multiprocessing.Queue()
+
+    messages = 100000
+
+    server = multiprocessing.Process(target=server_process, args=[server_output])
 
     client1 = multiprocessing.Process(target=client1_process, args=(1, 2, messages, client1_input, client1_output))
     client2 = multiprocessing.Process(target=client2_process, args=(2, messages, client2_input, client2_output))
 
-    client1.start()
+    server.start()
 
+    client1.start()
     client2.start()
 
     time.sleep(1)  # Wait for processes to initialize (optional)
@@ -86,6 +102,8 @@ def main():
 
     client1.join()
     client2.join()
+
+    server.kill()
 
 
 if __name__ == "__main__":

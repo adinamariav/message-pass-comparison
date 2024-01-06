@@ -4,7 +4,7 @@
 
 int main(int argc, char* argv[])
 {
-    printf("Hello from p2p\n");
+    setvbuf(stdout, NULL, _IONBF, 0);
 
     int port = -1;
 
@@ -15,6 +15,8 @@ int main(int argc, char* argv[])
     } else {
         port = atoi(argv[1]);
     }
+
+    printf("Hello from p2p poort %d\n", port);
 
     Peer peer(port);
 

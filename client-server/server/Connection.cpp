@@ -4,7 +4,7 @@
 
 #include "Connection.h"
 
-Connection::Connection(int socket, int id) : descriptor(socket), id(id) {}
+Connection::Connection(int socket) : descriptor(socket), id(-2) {}
 
 int Connection::getDescriptor() const {
     return descriptor;
@@ -88,4 +88,8 @@ std::string Connection::receiveMessage() {
     }
 
     return {buffer.data(), static_cast<size_t>(contentReceived)};
+}
+
+void Connection::setId(int id) {
+    this->id = id;
 }

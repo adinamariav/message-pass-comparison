@@ -17,13 +17,15 @@ protected:
     int id;
 
 public:
-    Connection(int socket, int id);
+    explicit Connection(int socket);
 
     Connection();
 
     [[nodiscard]] int getDescriptor() const override;
 
     [[nodiscard]] int getId() const override;
+
+    void setId(int id) override;
 
     void sendMessage(std::string message) override;
 

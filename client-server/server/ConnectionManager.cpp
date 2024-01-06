@@ -71,15 +71,10 @@ void ConnectionManager::handleServer(IEpollWrapper *connection) {
     inet_ntop(AF_INET, (char *)&(clientAddr.sin_addr),
               buf, sizeof(clientAddr));
 
-    IEpollWrapper *clientConnection = new Connection(newSock, getNextId());
+    IEpollWrapper *clientConnection = new Connection(newSock);
     this->connections.push_back(clientConnection);
 
-    printf("[+] id %d connected with %s:%d\n", clientConnection->getId(), buf,
-           ntohs(clientAddr.sin_port));
-
-    std::string clientBuf = std::to_string(clientConnection->getId()) + "\n";
-
-    clientConnection->sendMessage(clientBuf);
+    printf("[+] %s:%d connected \n", buf, ntohs(clientAddr.sin_port));
 
     struct epoll_event clientEvent;
 
@@ -115,12 +110,19 @@ void ConnectionManager::handleClient(IEpollWrapper *connection) {
                 content += *iter + " ";
 
             std::string mes = "[*] id " + std::to_string(connection->getId()) + " wants to send " + std::to_string(sendId) + " " + content + "\n";
-            //printf("%s", mes.c_str());
+            // printf("%s", mes.c_str());
 
             for (auto c : this->connections) {
                 if (c->getId() == sendId) {
-                    std::string toSend = "[" + std::to_string(connection->getId()) + "]: " + content;
+                    std::string toSend = std::to_string(connection->getId()) + " " + content;
                     c->sendMessage(toSend);
+                }
+            }
+        } else if (tokens[0] == "ID") {
+            for (auto c : this->connections) {
+                if (c->getDescriptor() == connection->getDescriptor()) {
+                    int id = stoi(tokens[1]);
+                    c->setId(id);
                 }
             }
         } else {

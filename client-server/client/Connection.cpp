@@ -99,12 +99,10 @@ Connection::Connection() {
 
     memset(buffer, 0, 1024);
 
-    // Set up the server address struct
     serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // Server IP address
-    serverAddr.sin_port = htons(8080); // Server port
+    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    serverAddr.sin_port = htons(8080);
 
-    // Connect to the server
     if (connect(clientSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0) {
         perror("Connection failed");
         exit(EXIT_FAILURE);
@@ -113,12 +111,12 @@ Connection::Connection() {
     int flags = fcntl(clientSocket, F_GETFL, 0);
     if (flags == -1) {
         perror("fcntl");
-        close(clientSocket);  // Close the socket in case of an error
+        close(clientSocket);
         exit(EXIT_FAILURE);
     }
     if (fcntl(clientSocket, F_SETFL, flags | O_NONBLOCK) == -1) {
         perror("fcntl");
-        close(clientSocket);  // Close the socket in case of an error
+        close(clientSocket);
         exit(EXIT_FAILURE);
     }
 }

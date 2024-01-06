@@ -12,6 +12,8 @@ class IEpollWrapper {
 public:
     [[nodiscard]] virtual int getId() const = 0;
 
+    virtual void setId(int id) = 0;
+
     [[nodiscard]] virtual int getDescriptor() const = 0;
 
     virtual void sendMessage(std::string message) = 0;

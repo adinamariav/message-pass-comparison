@@ -4,8 +4,11 @@
 
 #include "Client.h"
 
-Client::Client() {
-    this->id = stoi(conn.receiveMessages().front());
+Client::Client(int id) {
+    this->id = id;
+
+    std::string idMessage = "ID " + std::to_string(id);
+    conn.sendMessage(idMessage);
 }
 
 int Client::getId() const {

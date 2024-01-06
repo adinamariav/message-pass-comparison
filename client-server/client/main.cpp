@@ -11,6 +11,16 @@ int main(int argc, char* argv[])
 {
     setvbuf(stdout, NULL, _IONBF, 0);
     printf("Hello from client!\n");
+    int clientID = -1;
+
+    if (argc < 2)
+    {
+        printf("Please specify the client ID\n");
+        exit(EXIT_FAILURE);
+    } else {
+        clientID = atoi(argv[1]);
+    }
+
     int epollFd = epoll_create1(0);
 
     struct epoll_event stdinEvent;
@@ -22,7 +32,7 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-    Client client;
+    Client client(clientID);
     std::cout << "ID " << std::to_string(client.getId()) << "\n";
 
     struct epoll_event clientEvent;

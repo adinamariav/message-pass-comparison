@@ -16,7 +16,7 @@ private:
     int id = -1;
 
 public:
-    Client();
+    explicit Client(int id);
 
     [[nodiscard]] int getId() const;
 

@@ -171,6 +171,6 @@ client-server/client/client-output
 /**/client-server-output
 /**/peer2peer-output
 /**/client/client
-/**/client/server
+/**/server/server
 
 # End of https://www.toptal.com/developers/gitignore/api/clion,c++,cmake
